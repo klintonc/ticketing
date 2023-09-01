@@ -4,6 +4,6 @@ import {
   TicketUpdatedEvent,
 } from '@klintonc-org/ticketing-common';
 
-export class TicketCreatePublisher extends Publisher<TicketUpdatedEvent> {
+export class TicketUpdatedPublisher extends Publisher<TicketUpdatedEvent> {
   readonly subject = Subjects.TicketUpdated;
 }
