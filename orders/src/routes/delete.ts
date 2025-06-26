@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import {
+  BadRequestError,
   NotAuthenticatedError,
   NotFoundError,
   requireAuth,
@@ -24,6 +25,11 @@ router.delete(
     }
     if (order.userId !== req.currentUser!.id) {
       throw new NotAuthenticatedError();
+    }
+
+    // a paid order keeps its ticket; cancelling it would release the ticket again
+    if (order.status === OrderStatus.Complete) {
+      throw new BadRequestError('Cannot cancel a paid order');
     }
 
     order.status = OrderStatus.Cancelled;

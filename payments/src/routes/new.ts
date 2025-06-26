@@ -39,9 +39,16 @@ router.post(
       throw new BadRequestError('Cannot pay for an cancelled order');
     }
 
+    // never charge the same order twice
+    const existingPayment = await Payment.findOne({ orderId });
+    if (existingPayment) {
+      throw new BadRequestError('Order has already been paid');
+    }
+
     const charge = await stripe.charges.create({
       currency: 'thb',
-      amount: order.price * 100,
+      // Stripe expects an integer amount in the smallest currency unit
+      amount: Math.round(order.price * 100),
       source: token,
     });
 

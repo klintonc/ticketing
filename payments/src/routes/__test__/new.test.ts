@@ -38,6 +38,30 @@ it('returns a 401 when purchasing an order that does not belongs to the user', a
     .expect(401);
 });
 
+it('returns a 400 when the order has already been paid', async () => {
+  const userId = new mongoose.Types.ObjectId().toHexString();
+  const order = Order.build({
+    id: new mongoose.Types.ObjectId().toHexString(),
+    userId,
+    version: 0,
+    price: 20,
+    status: OrderStatus.Created,
+  });
+  await order.save();
+
+  const payment = Payment.build({ orderId: order.id, stripeId: 'ch_existing' });
+  await payment.save();
+
+  await request(app)
+    .post('/api/payments')
+    .set('Cookie', global.signin(userId))
+    .send({
+      token: 'tok_visa',
+      orderId: order.id,
+    })
+    .expect(400);
+});
+
 it('returns a 400 when purchasing a cancelled order', async () => {
   const userId = new mongoose.Types.ObjectId().toHexString();
   const order = Order.build({

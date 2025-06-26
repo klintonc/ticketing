@@ -61,3 +61,33 @@ it('emits an order cancelled event', async () => {
 
   expect(natsWrapper.client.publish).toHaveBeenCalled();
 });
+
+it('returns a 400 when cancelling a paid order', async () => {
+  const ticket = Ticket.build({
+    id: new mongoose.Types.ObjectId().toHexString(),
+    title: 'concert',
+    price: 20,
+  });
+  await ticket.save();
+
+  const user = global.signin();
+  const { body: order } = await request(app)
+    .post('/api/orders')
+    .set('Cookie', user)
+    .send({ ticketId: ticket.id })
+    .expect(201);
+
+  // mark the order as paid
+  const paidOrder = await Order.findById(order.id);
+  paidOrder!.set({ status: OrderStatus.Complete });
+  await paidOrder!.save();
+
+  await request(app)
+    .delete(`/api/orders/${order.id}`)
+    .set('Cookie', user)
+    .send()
+    .expect(400);
+
+  const updatedOrder = await Order.findById(order.id);
+  expect(updatedOrder!.status).toEqual(OrderStatus.Complete);
+});

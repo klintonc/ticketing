@@ -8,8 +8,9 @@ declare global {
 
 jest.mock('../nats-wrapper.ts');
 
-process.env.STRIPE_KEY =
-  'sk_test_YOUR_STRIPE_SECRET_KEY';
+// Some tests create real test-mode charges, so they need your Stripe test secret key:
+// STRIPE_KEY=sk_test_... npm test
+process.env.STRIPE_KEY = process.env.STRIPE_KEY || 'sk_test_YOUR_STRIPE_SECRET_KEY';
 
 let mongo: any;
 
